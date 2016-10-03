@@ -1,4 +1,5 @@
 <?php
+error_reporting( E_ALL );
 ini_set( 'display_errors', 1 );
 /**
 *
@@ -62,15 +63,27 @@ class FlutterWave
 
   public function makeDebit( $amount, $cardno, $custid, $cvv, $pin, $bvn, $cardtype, $expirymonth, $expiryyear, $narration, $decrypted )
   {
+    $authmodel  = 'NOAUTH';
+
+    if ( $pin != 0 ) {
+      $authmodel  =   'PIN';
+    }
+
+    if ( $bvn != 0 ) {
+      $authmodel  =   'BVN';
+    }
+
     $trans_id   = $this->transId( $decrypted );
+    $masked     = $this->maskPan( $cardno );
     $api_trans  = array(
-      'table' => 'api_transactions',
+      'table' => 'api_transactions_logs',
       'cols'  =>  array(
         'trans_id',
         'user',
         'pay_id',
         'dir',
         'msg_type',
+        'authmodel',
         'pan',
         'amount',
         'country',
@@ -85,7 +98,8 @@ class FlutterWave
         ':pay_id'   =>  $custid,
         ':dir'      =>  'T2F',
         ':msg_type' =>  'REQ',
-        ':pan'      =>  $this->maskPan( $cardno ),
+        ':authmodel'  =>  $authmodel,
+        ':pan'      =>  $masked,
         ':amount'   =>  $amount,
         ':country'  =>  'GH',
         ':currency' =>  'GHS',
@@ -98,16 +112,6 @@ class FlutterWave
     $this->database->insert( $api_trans );
     $api_trans[ 'table' ] = 'flw_transactions_logs';
     $this->database->insert( $api_trans );
-
-    $authmodel  = 'NOAUTH';
-
-    if ( $pin != 0 ) {
-      $authmodel  =   'PIN';
-    }
-
-    if ( $bvn != 0 ) {
-      $authmodel  =   'BVN';
-    }
 
     $_url   = $this->_url;
     $_card  = [
@@ -149,6 +153,15 @@ class FlutterWave
 
     if ( isset( $_response[ 'data' ] ) ) {
       $_response[ 'data' ][ 'extid' ] = $trans_id;
+      $_response[ 'data' ][ 'user' ] = $decrypted;
+      $_response[ 'data' ][ 'pay_id' ] = $custid;
+      $_response[ 'data' ][ 'pan' ] = $masked;
+      $_response[ 'data' ][ 'amount' ] = $amount;
+      $_response[ 'data' ][ 'currency' ] = 'GHS';
+      $_response[ 'data' ][ 'country' ] = 'GH';
+      $_response[ 'data' ][ 'expiryyear' ] = $expiryyear;
+      $_response[ 'data' ][ 'expirymonth' ] = $expirymonth;
+      $_response[ 'data' ][ 'narration' ] = $narration;
     }
 
     return $this->isResponsible( $_response );
@@ -194,30 +207,52 @@ class FlutterWave
   private function isResponsible( $response )
   {
     // INSERT INTO DB LOG
-    $theData = array(
+    $theData  = array(
       'table' => 'flw_transactions_logs',
       'cols'  =>  array(
+        'trans_id',
+        'user',
+        'pay_id',
         'dir',
         'msg_type',
+        'pan',
+        'amount',
+        'country',
+        'currency',
+        'expiry_month',
+        'expiry_year',
         'response_code',
         'response_message',
         'otp_trans_id',
         'trans_reference',
         'response_token',
-        'trans_status'
+        'trans_status',
+        'narration'
       ),
-      'values'  =>  array(
-        ':dir'  =>  'F2T',
+      'values'      => array(
+        ':trans_id' =>  $response[ 'data' ][ 'extid' ],
+        ':user'     =>  $response[ 'data' ][ 'user' ],
+        ':pay_id'   =>  $response[ 'data' ][ 'pay_id' ],
+        ':dir'      =>  'F2T',
         ':msg_type' =>  'RSP',
-        ':response_code'  => ( isset( $_response[ 'data' ] ) ) ? $response[ 'data' ][ 'responsecode' ] : '',
-        ':response_message' =>  ( isset( $_response[ 'data' ] ) ) ? $response[ 'data' ][ 'responsemessage' ] : '',
-        ':otp_trans_id' =>  ( isset( $_response[ 'data' ] ) ) ? $response[ 'data' ][ 'otptransactionidentifier' ] : '',
-        ':trans_reference'  =>  ( isset( $_response[ 'data' ] ) ) ? $response[ 'data' ][ 'transactionreference' ] : '',
-        ':response_token' =>  ( isset( $_response[ 'data' ] ) ) ? $response[ 'data' ][ 'responsetoken' ] : '',
-        ':trans_status' =>  $response[ 'status' ]
+        ':pan'      =>  $response[ 'data' ][ 'pan' ],
+        ':amount'   =>  $response[ 'data' ][ 'amount' ],
+        ':country'  =>  'GH',
+        ':currency' =>  'GHS',
+        ':expiry_month' =>  $response[ 'data' ][ 'expirymonth' ],
+        ':expiry_year'  =>  $response[ 'data' ][ 'expiryyear' ],
+        ':response_code'  => $response[ 'data' ][ 'responsecode' ],
+        ':response_message' =>  $response[ 'data' ][ 'responsemessage' ],
+        ':otp_trans_id' =>  $response[ 'data' ][ 'otptransactionidentifier' ],
+        ':trans_reference'  =>  $response[ 'data' ][ 'transactionreference' ],
+        ':response_token' =>  $response[ 'data' ][ 'responsetoken' ],
+        ':trans_status' =>  $response[ 'status' ],
+        ':narration' =>  'lets just make up something'
       )
     );
 
+    $this->database->insert( $theData );
+    $theData[ 'table' ] = 'api_transactions_logs';
     $this->database->insert( $theData );
 
     // GENERATE MESSAGE FOR LOG FILE
@@ -267,7 +302,7 @@ class FlutterWave
             'status'  =>  'success',
             'data'    =>  array(
               'code'  =>  301,
-              'description' =>  'Card cannot be proccessed'
+              'description' =>  $_data[ 'responsemessage' ]
             )
           ); // for cards that cannot be processed
 
