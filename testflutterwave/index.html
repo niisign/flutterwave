@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <!-- Favicons-->
+        <link rel="apple-touch-icon-precomposed" href="images/favicon/apple-touch-icon-152x152.png">
+        <meta name="msapplication-TileColor" content="#FFFFFF">
+        <meta name="msapplication-TileImage" content="images/favicon/mstile-144x144.png">
+        <link rel="icon" href="images/favicon/favicon-32x32.png" sizes="32x32">
+        <title>FlutterWave Test Page</title>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <!-- Materialize core CSS -->
+        <link href="materialize/css/materialize.css" rel="stylesheet">
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="assets/js/html5shiv.js"></script>
+            <script src="assets/js/respond.min.js"></script>
+        <![endif]-->
+        <link href="style.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="row grey lighten-5">
+            <div class="container">
+                <div class="row">
+                    <div class="container center">
+                        <img src="img/TheTellerLogo.png" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="container">
+                        <h3 class="center">Complete Payment Form</h3>
+                        <h5 class="center">Test FlutterWave</h5>
+                    </div>
+                    <div class="container">
+                        <form method="post" action="action/pay.php">
+                            <div class="row">
+                                <div class="input-field col s6 offset-s3">
+                                    <input placeholder="1111222233334444" id="cardno" name="cardno" type="text" class="validate center">
+                                    <label for="first_name">Card Number:</label>
+                                </div>
+                                <div class="input-field col s6 offset-s3">
+                                    <input placeholder="1234" id="cvv" name="cvv" type="password" class="validate center">
+                                    <label for="first_name">CVV:</label>
+                                </div>
+                                <div class="input-field col s6 offset-s3">
+                                    <input placeholder="01" id="expirymonth" name="expirymonth" type="text" class="validate center">
+                                    <label for="first_name">Expiry Month:</label>
+                                </div>
+                                <div class="input-field col s6 offset-s3">
+                                    <input placeholder="16" id="expiryyear" name="expiryyear" type="text" class="validate center">
+                                    <label for="first_name">Expiry Year:</label>
+                                </div>
+                                <div class="input-field col s6 offset-s3">
+                                    <input placeholder="00.00" id="amount" name="amount" type="text" class="validate center">
+                                    <label for="first_name">Amount:</label>
+                                </div>
+                                <div class="input-field col s6 offset-s3">
+                                    <select id="authmodel" name="authmodel">
+                                        <option value="" disabled selected>Choose your option</option>
+                                        <option value="NOAUTH">NOAUTH</option>
+                                        <option value="PIN">PIN</option>
+                                        <option value="BVN">BVN</option>
+                                    </select>
+                                    <label>Authentication:</label>
+                                </div>
+                                <div id="auths" class="input-field col s6 offset-s3">
+                                    <input placeholder="52.01" id="" name="" type="text" class="validate center">
+                                    <label for="first_name">Amount:</label>
+                                </div>
+                                <div class="input-field col s6 offset-s3">
+                                    <input placeholder="Payment description" id="narration" name="narration" type="text" class="validate center">
+                                    <label for="first_name">Narration:</label>
+                                </div>
+                            </div>
+                            <div class="input-field col s6 offset-s3">
+                              <input type="submit" name="submit" class="col s12 btn-flat indigo darken-3 white-text" value="Pay">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Materialize core JavaScript -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="materialize/js/materialize.js"></script>
+        <script src="index.js"></script>
+        <script type="text/javascript">
+          $( document ).ready( function () {
+            $( '#auths' ).hide( );
+            $( '#authmodel' ).on( 'change', function () {
+              if ( $( this ).val( ) === 'PIN' ) {
+                $( '#auths' ).children( 'label' ).text( 'PIN:' );
+                $( '#auths' ).children( 'input' ).attr( 'placeholder', '1234' );
+                $( '#auths' ).children( 'input' ).attr( 'name', 'pin' );
+                $( '#auths' ).children( 'input' ).focus( );
+                $( '#auths' ).fadeIn( 500 );
+              } else if ( $( this ).val( ) === 'BVN' ) {
+                $( '#auths' ).children( 'label' ).text( 'BVN:' );
+                $( '#auths' ).children( 'input' ).attr( 'placeholder', '1234' );
+                $( '#auths' ).children( 'input' ).attr( 'name', 'bvn' );
+                $( '#auths' ).children( 'input' ).focus( );
+                $( '#auths' ).fadeIn( 500 );
+              } else {
+                $( '#auths' ).fadeOut( 100 );
+                $( '#auths' ).children( 'input' ).val( '' );
+              }
+            });
+          });
+        </script>
+    </body>
+</html>
