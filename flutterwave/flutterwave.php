@@ -379,7 +379,7 @@ class FlutterWave
 
   private function intoLog( $message )
   {
-    $_fwrite  =   file_put_contents( 'ttlrapi.txt', $message, FILE_APPEND );
+    $_fwrite  =   file_put_contents( '/var/www/api.theteller.net/public_html/test/ttlrapi.txt', $message, FILE_APPEND );
     return $_fwrite;
   }
 
